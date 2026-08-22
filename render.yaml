@@ -1,0 +1,49 @@
+# Render Blueprint for SplitShield — deploys the FastAPI backend and the
+# Next.js frontend as two web services.
+#
+# After the FIRST deploy, confirm the two cross-referenced URLs match the
+# actual service URLs Render assigned (Render appends a suffix if a name is
+# taken), then update these env vars in each service's Environment tab:
+#   splitshield-web  -> NEXT_PUBLIC_API_URL      = https://<actual api host>
+#   splitshield-api  -> SPLITSHIELD_CORS_ORIGINS = https://<actual web host>
+# Changing NEXT_PUBLIC_API_URL triggers the frontend rebuild it requires.
+#
+# Free-plan notes (documented, not hidden): services sleep after ~15 min of
+# inactivity (first visit wakes them in ~30-60 s), disk is ephemeral (fine -
+# audits auto-delete after the retention window anyway), and RAM is 512 MB,
+# so the upload cap below is set to 256 MiB. The demo dataset and modest
+# uploads run comfortably; very large datasets need a paid instance.
+
+services:
+  - type: web
+    name: splitshield-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SPLITSHIELD_CORS_ORIGINS
+        value: https://splitshield-web.onrender.com
+      - key: SPLITSHIELD_DATA_DIR
+        value: /tmp/splitshield-data
+      - key: SPLITSHIELD_MAX_UPLOAD_BYTES
+        value: "268435456"
+      - key: SPLITSHIELD_MAX_UNCOMPRESSED_BYTES
+        value: "1073741824"
+      - key: SPLITSHIELD_RETENTION_HOURS
+        value: "24"
+
+  - type: web
+    name: splitshield-web
+    runtime: node
+    rootDir: frontend
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start -- -p $PORT
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://splitshield-api.onrender.com

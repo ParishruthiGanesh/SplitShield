@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, defaultConfig, type AuditConfig, type Capabilities, ApiError } from "@/lib/api";
+import { addHistory, listHistory, removeHistory, type HistoryEntry } from "@/lib/history";
 
 const FORMAT_HINT = `Classification layout (class folders enable label checks + the evaluation experiment):
 
@@ -40,11 +41,13 @@ export default function UploadClient() {
   const [caps, setCaps] = useState<Capabilities | null>(null);
   const [config, setConfig] = useState<AuditConfig>(defaultConfig);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const demoAutostart = useRef(false);
 
   useEffect(() => {
     api.capabilities().then(setCaps).catch(() => setCaps(null));
+    setHistory(listHistory());
   }, []);
 
   const startDemo = useCallback(async (cfg: AuditConfig) => {
@@ -52,6 +55,12 @@ export default function UploadClient() {
     setError(null);
     try {
       const job = await api.createDemoAudit(cfg);
+      addHistory({
+        jobId: job.job_id,
+        name: "Demonstration dataset",
+        source: "demo",
+        createdAt: new Date().toISOString(),
+      });
       router.push(`/audit/${job.job_id}`);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not reach the analysis backend.");
@@ -88,6 +97,12 @@ export default function UploadClient() {
     setError(null);
     try {
       const job = await api.uploadAudit(file, config);
+      addHistory({
+        jobId: job.job_id,
+        name: file.name,
+        source: "upload",
+        createdAt: new Date().toISOString(),
+      });
       router.push(`/audit/${job.job_id}`);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Upload failed — is the backend running?");
@@ -246,6 +261,49 @@ export default function UploadClient() {
           </span>
         )}
       </div>
+
+      {history.length > 0 && (
+        <div className="mt-8 rounded-lg border border-edge bg-raised">
+          <div className="flex items-baseline justify-between px-4 py-3">
+            <h2 className="text-sm font-medium">Recent audits on this device</h2>
+            <span className="text-xs text-muted">
+              Stored only in this browser · audits auto-delete on the server after the retention window
+            </span>
+          </div>
+          <ul className="divide-y divide-edge border-t border-edge">
+            {history.map((h) => (
+              <li key={h.jobId} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+                <a
+                  href={`/audit/${h.jobId}`}
+                  className="min-w-0 flex-1 truncate text-accent hover:underline"
+                >
+                  {h.name}
+                </a>
+                <span className="shrink-0 rounded border border-edge px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted">
+                  {h.source}
+                </span>
+                <span className="shrink-0 text-xs text-muted">
+                  {new Date(h.createdAt).toLocaleString()}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${h.name} from history`}
+                  onClick={() => {
+                    removeHistory(h.jobId);
+                    setHistory(listHistory());
+                  }}
+                  className="shrink-0 rounded px-1.5 text-muted transition hover:text-danger"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="border-t border-edge px-4 py-2 text-xs text-muted">
+            An entry that no longer opens has expired on the server; remove it with ✕.
+          </p>
+        </div>
+      )}
 
       <p className="mt-6 text-xs leading-relaxed text-muted">
         Only upload datasets you are legally permitted to process. Archives are
