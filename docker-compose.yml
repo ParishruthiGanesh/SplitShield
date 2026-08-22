@@ -1,0 +1,37 @@
+# SplitShield — full-stack local deployment.
+#
+#   docker compose up --build
+#   Frontend:  http://localhost:3000
+#   API/docs:  http://localhost:8000/docs
+#
+# Uploaded data lives in the `splitshield-data` volume and is auto-deleted
+# after SPLITSHIELD_RETENTION_HOURS.
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      SPLITSHIELD_DATA_DIR: /data
+      SPLITSHIELD_RETENTION_HOURS: "24"
+      SPLITSHIELD_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+      # See backend/.env.example for every knob.
+    volumes:
+      - splitshield-data:/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Must be reachable from the *browser*, not from the container.
+        NEXT_PUBLIC_API_URL: "http://localhost:8000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  splitshield-data:
