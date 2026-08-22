@@ -87,3 +87,16 @@ curl -s localhost:8000/api/health                         # {"status":"ok",...}
 - [ ] NOT yet verified live: the blueprint has not been deployed to a real
   Render account from this environment. First deploy should follow the smoke
   checklist in docs/DEPLOY_RENDER.md before the URL is shared publicly.
+
+## Update 2026-08-22 — per-device audit history
+
+- [x] "Recent audits on this device" on the Analyze page: entries recorded in
+  the visitor's localStorage when an audit is created (upload or demo), with
+  source badge, timestamp and remove button (`frontend/lib/history.ts`).
+- [x] Privacy-preserving by design: no server-side cross-user audit listing
+  exists; history lives only in each visitor's own browser. Expired audits
+  resolve to the existing "Audit not found" page.
+- [x] Verified: tsc --noEmit clean, next build passes.
+- Live deployment verified by the user on Render:
+  https://splitshield-web.onrender.com (demo dataset ran end to end, report
+  rendered).
