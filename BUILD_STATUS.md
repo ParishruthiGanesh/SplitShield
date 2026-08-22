@@ -77,3 +77,13 @@ curl -s localhost:8000/api/health                         # {"status":"ok",...}
 - [x] Verified: 89 backend tests pass; E2E YOLO-layout ZIP through the real API
   detects a planted cross-split exact duplicate, disables eval with reason,
   generates repair manifest and HTML/JSON reports.
+
+## Update 2026-08-22 — Render deployment blueprint
+
+- [x] `render.yaml` Blueprint: backend (Python native runtime, uvicorn on
+  $PORT, health check on /api/health) + frontend (Node runtime, Next.js).
+- [x] `docs/DEPLOY_RENDER.md` click-by-click guide with post-deploy URL
+  wiring and free-plan limitations.
+- [ ] NOT yet verified live: the blueprint has not been deployed to a real
+  Render account from this environment. First deploy should follow the smoke
+  checklist in docs/DEPLOY_RENDER.md before the URL is shared publicly.
