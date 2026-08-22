@@ -1,0 +1,83 @@
+1
+00:00:00,500 --> 00:00:06,000
+SplitShield — detect, repair, and quantify hidden leakage in computer-vision datasets.
+
+2
+00:00:06,300 --> 00:00:12,500
+Duplicates that cross the train/test boundary quietly inflate reported accuracy.
+
+3
+00:00:13,000 --> 00:00:19,000
+Let's audit a real dataset on the live app — a ZIP of game-sprite images.
+
+4
+00:00:19,500 --> 00:00:26,000
+Uploads are validated by file signature and safely extracted — nothing is ever executed.
+
+5
+00:00:26,500 --> 00:00:30,800
+One click: Start audit.
+
+6
+00:00:31,300 --> 00:00:39,000
+The pipeline runs for real: indexing, SHA-256 exact matching, perceptual hashing…
+
+7
+00:00:39,500 --> 00:00:50,500
+…then appearance-embedding similarity search, scoring, and report generation.
+
+8
+00:00:52,000 --> 00:00:59,000
+Integrity Score 65.9 — high risk. 399 near-duplicate cross-split leaks detected.
+
+9
+00:00:59,500 --> 00:01:06,500
+Every chart is computed from this audit: split sizes, classes, and severities.
+
+10
+00:01:07,000 --> 00:01:14,000
+Evidence Explorer: each suspicious pair, side by side, with its similarity evidence.
+
+11
+00:01:14,500 --> 00:01:21,000
+A human makes the call — confirm leakage, mark safe or expected, or flag uncertain.
+
+12
+00:01:21,500 --> 00:01:27,500
+Review decisions are recorded without overwriting the algorithmic evidence.
+
+13
+00:01:28,000 --> 00:01:35,500
+Repair Studio proposes a safer split — 61 duplicate groups, every move explained.
+
+14
+00:01:36,000 --> 00:01:42,000
+Originals are never modified; the repair manifest exports as CSV or JSON.
+
+15
+00:01:43,000 --> 00:01:50,500
+The audit report: score breakdown, findings with review status, and full configuration.
+
+16
+00:01:51,000 --> 00:01:58,500
+Dataset fingerprint, random seed, and package versions — anyone can re-run and verify.
+
+17
+00:01:59,000 --> 00:02:05,000
+Everything downloads as a printable report, JSON, or CSV.
+
+18
+00:02:05,500 --> 00:02:11,500
+The methodology is public: SHA-256, perceptual hashing, embeddings, and the score formula.
+
+19
+00:02:12,000 --> 00:02:15,200
+A fully documented REST API underneath.
+
+20
+00:02:15,700 --> 00:02:21,800
+Recent audits stay on your own device — privacy by design, auto-deleted on the server.
+
+21
+00:02:22,500 --> 00:02:28,500
+SplitShield — audit your splits before you trust your accuracy.
