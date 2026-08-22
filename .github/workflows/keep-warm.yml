@@ -1,0 +1,37 @@
+name: Keep demo warm
+
+# Render's free tier spins services down after ~15 idle minutes; the next
+# visitor then waits 30-60 s for a cold start. This pings both services every
+# 10 minutes so judges always hit a warm site.
+#
+# Auto-stops after END_DATE (set below) so it doesn't burn Render free-tier
+# instance hours indefinitely. Delete this file or disable the workflow in
+# the Actions tab to stop earlier.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping frontend and backend
+        run: |
+          END_DATE="2026-09-15"
+          if [ "$(date -u +%F)" \> "$END_DATE" ]; then
+            echo "Past $END_DATE - keep-warm window over, skipping."
+            exit 0
+          fi
+          set +e
+          for url in \
+            "https://splitshield-api.onrender.com/api/health" \
+            "https://splitshield-web.onrender.com/"; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 90 "$url")
+            echo "$url -> HTTP $code"
+          done
+          exit 0
