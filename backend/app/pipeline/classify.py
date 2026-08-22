@@ -11,7 +11,19 @@ from typing import Iterable
 
 from ..domain import ConfidenceLabel, FindingKind, Method, Severity
 from .indexing import SampleRecord
+from .ingest import UNLABELED
 from .similarity import CandidatePair
+
+
+def labels_conflict(a: SampleRecord, b: SampleRecord) -> bool:
+    """True when two samples carry genuinely different class labels.
+
+    Samples with the ``UNLABELED`` pseudo-class (datasets without class
+    subfolders) never conflict: there is no label evidence to contradict.
+    """
+    if a.label == UNLABELED or b.label == UNLABELED:
+        return False
+    return a.label != b.label
 
 
 @dataclass
@@ -49,7 +61,7 @@ def _classify_one(
     or below the strong threshold).
     """
     cross_split = a.split != b.split
-    conflicting = a.label != b.label
+    conflicting = labels_conflict(a, b)
 
     if method is Method.SHA256:
         confidence = ConfidenceLabel.CONFIRMED_EXACT
@@ -122,7 +134,7 @@ def build_findings(
             distance=distance,
             similarity=similarity,
             cross_split=a.split != b.split,
-            conflicting_label=a.label != b.label,
+            conflicting_label=labels_conflict(a, b),
         )
 
     # 1. Exact duplicates - every pair within each digest group.

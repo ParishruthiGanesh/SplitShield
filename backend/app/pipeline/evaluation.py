@@ -27,6 +27,7 @@ from sklearn.metrics import accuracy_score, f1_score
 from ..config import settings
 from ..domain import FindingKind, Method, ReviewDecision
 from .classify import PairFinding
+from .ingest import UNLABELED
 from .indexing import SampleRecord
 
 WARNINGS = [
@@ -55,8 +56,15 @@ def check_eligibility(samples: list[SampleRecord]) -> EvalEligibility:
     if not test:
         return EvalEligibility(False, "No test split was found.")
 
-    train_classes = {s.label for s in train}
-    test_classes = {s.label for s in test}
+    train_classes = {s.label for s in train} - {UNLABELED}
+    test_classes = {s.label for s in test} - {UNLABELED}
+    if not train_classes and not test_classes:
+        return EvalEligibility(
+            False,
+            "The dataset has no class labels (images sit directly in split "
+            "folders), so a classification experiment cannot be trained. "
+            "Leakage detection is unaffected.",
+        )
     usable = train_classes & test_classes
     if len(usable) < settings.eval_min_classes:
         return EvalEligibility(

@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, defaultConfig, type AuditConfig, type Capabilities, ApiError } from "@/lib/api";
 
-const FORMAT_HINT = `dataset.zip
+const FORMAT_HINT = `Classification layout (class folders enable label checks + the evaluation experiment):
+
+dataset.zip
 ├── train/
 │   ├── class_a/  img001.jpg …
 │   └── class_b/  img050.png …
@@ -12,7 +14,21 @@ const FORMAT_HINT = `dataset.zip
 │   └── class_a/  …
 └── test/
     ├── class_a/  …
-    └── class_b/  …`;
+    └── class_b/  …
+
+Detection-style layout (e.g. YOLO) is also accepted — images directly
+inside split folders, with or without an images/ wrapper:
+
+dataset.zip
+└── images/
+    ├── train/  img001.jpg …
+    ├── val/    …
+    └── test/   …
+
+Without class folders the samples are treated as unlabeled: duplicate and
+cross-split leakage detection run normally, while conflicting-label checks
+and the evaluation-gap experiment are disabled (they need class labels).
+Non-image files such as labels/*.txt and data.yaml are ignored safely.`;
 
 export default function UploadClient() {
   const router = useRouter();

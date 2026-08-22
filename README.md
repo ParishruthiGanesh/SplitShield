@@ -96,6 +96,17 @@ dataset.zip
 * Video is **not** supported in this MVP; the pipeline's sample abstraction is
   designed so frame-sampled videos can be added later.
 
+### Detection-style layout (no class folders)
+
+Datasets whose images sit directly inside split folders — the layout used by
+YOLO and most detection tools (`images/train/img.jpg`, `images/val/…`,
+`images/test/…`) — are also accepted. Such samples are treated as **unlabeled**:
+
+* Exact, near-duplicate and appearance-similarity leakage detection run normally.
+* Conflicting-label detection and the evaluation-gap experiment are disabled,
+  with the reason stated in the dashboard and report (they require class labels).
+* Non-image files (`labels/*.txt`, `data.yaml`) are ignored safely.
+
 ## Local setup
 
 Prerequisites: Python 3.11+, Node 20+.

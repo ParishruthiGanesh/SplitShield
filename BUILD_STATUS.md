@@ -65,3 +65,15 @@ cd ../frontend && npm run start -- --port 3000 &
 cd ../frontend && npx playwright test                     # expect: 1 passed
 curl -s localhost:8000/api/health                         # {"status":"ok",...}
 ```
+
+## Update 2026-08-22 — detection-style (unlabeled) dataset support
+
+- [x] `classify_path` accepts images directly inside split folders (YOLO layout,
+  `images/train/*.jpg`), assigning the `(unlabeled)` pseudo-class.
+- [x] Conflicting-label logic never fires when either side is unlabeled
+  (`labels_conflict` in `classify.py`).
+- [x] Evaluation experiment disables with an explicit reason for unlabeled datasets.
+- [x] Upload page documents both accepted layouts.
+- [x] Verified: 89 backend tests pass; E2E YOLO-layout ZIP through the real API
+  detects a planted cross-split exact duplicate, disables eval with reason,
+  generates repair manifest and HTML/JSON reports.

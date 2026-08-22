@@ -30,6 +30,11 @@ _SIGNATURES: list[tuple[bytes, str]] = [
 ]
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+
+# Label assigned when images sit directly inside a split directory with no
+# class subfolder (common for detection-style datasets, e.g. YOLO's
+# images/train/*.jpg). Label-dependent checks are disabled for such samples.
+UNLABELED = "(unlabeled)"
 ALLOWED_FORMATS = {"JPEG", "PNG", "WEBP"}
 
 # Directory names that map onto a split.
@@ -121,9 +126,12 @@ def _resolve_within(base: Path, candidate: Path) -> bool:
 def classify_path(rel_path: str) -> tuple[Split, str] | None:
     """Map ``train/class_a/img.jpg`` -> (Split.TRAIN, "class_a").
 
-    Tolerates a single wrapper directory (``dataset/train/...``) and nested
-    class directories (joined with ``/``). Returns ``None`` when no split
-    directory is present anywhere in the path.
+    Tolerates wrapper directories (``dataset/train/...``, ``images/train/...``)
+    and nested class directories (joined with ``/``). An image sitting directly
+    inside a split directory - the layout used by detection datasets such as
+    YOLO (``images/train/img.jpg``) - is accepted with the ``UNLABELED``
+    pseudo-class; label-dependent analyses are skipped for such samples.
+    Returns ``None`` only when no split directory appears anywhere in the path.
     """
     parts = [p for p in PurePosixPath(rel_path.replace("\\", "/")).parts if p not in (".",)]
     if len(parts) < 2:
@@ -141,7 +149,7 @@ def classify_path(rel_path: str) -> tuple[Split, str] | None:
     class_parts = parts[split_idx + 1 : -1]
     if not class_parts:
         # Image sits directly in the split directory: no class label.
-        return None
+        return split, UNLABELED
     return split, "/".join(class_parts)
 
 
@@ -302,8 +310,9 @@ def extract_dataset(zip_path: Path, dest_root: Path) -> ExtractResult:
 
     if not result.files:
         raise IngestError(
-            "No usable images were found. Ensure the archive uses "
-            "<split>/<class>/<image> folders, e.g. train/cat/img1.jpg."
+            "No usable images were found. The archive must contain train/val/test "
+            "split folders, either with class subfolders (train/cat/img1.jpg) or "
+            "with images directly inside the split (images/train/img1.jpg)."
         )
     return result
 

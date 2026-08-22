@@ -118,7 +118,9 @@ class TestLayoutParsing:
             ("VALID/dog/b.png", ("val", "dog")),
             ("wrapper/TEST/bird/nested/c.webp", ("test", "bird/nested")),
             ("images/a.jpg", None),
-            ("train/naked.jpg", None),
+            ("train/naked.jpg", ("train", "(unlabeled)")),
+            ("images/train/yolo_img.jpg", ("train", "(unlabeled)")),
+            ("images/val/yolo_img.jpeg", ("val", "(unlabeled)")),
         ],
     )
     def test_classify(self, path, expected):
