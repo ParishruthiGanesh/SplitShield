@@ -116,11 +116,22 @@ def _connect() -> sqlite3.Connection:
 
 
 def get_conn() -> sqlite3.Connection:
-    """Return a thread-local connection."""
+    """Return a thread-local connection to the *current* database path.
+
+    Keyed by path so that worker threads pick up a repointed ``data_dir``
+    (tests repoint it per-test; production never changes it).
+    """
+    path = str(settings.db_path)
     conn = getattr(_local, "conn", None)
-    if conn is None:
+    if conn is None or getattr(_local, "conn_path", None) != path:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
         conn = _connect()
         _local.conn = conn
+        _local.conn_path = path
     return conn
 
 
@@ -133,6 +144,7 @@ def reset_connection() -> None:
         except Exception:
             pass
     _local.conn = None
+    _local.conn_path = None
 
 
 @contextmanager
